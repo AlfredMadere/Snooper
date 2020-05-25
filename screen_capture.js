@@ -1,11 +1,10 @@
 
+const { exec } = require("child_process");
 var capturing = true;
 
-const { exec } = require("child_process");
 
 
-
-function screenCapture(){
+function screenShot(){
 	var now = new Date();
 	var photoName = now.getTime() + ".png";
 	var executable = "screencapture -x shots/" + photoName;
@@ -24,13 +23,27 @@ function screenCapture(){
 
 }
 
-function scheduleCapture() {
-	setTimeout(() => {
-		screenCapture();
-		if (capturing){
-			scheduleCapture();
-		} 
-	}, 1000);
+function delay(time){
+	return new Promise(resolve => setTimeout(resolve, time));
 }
 
-scheduleCapture();
+function collectFrames(time, frequency) {
+	scheduleScreenshot(frequency);
+	return delay(time).then(stopCapturing).catch(err => console.log(err));
+}
+
+function scheduleScreenshot(frequency){
+	if(capturing){
+		screenShot();
+		setTimeout(() => scheduleScreenshot(frequency), frequency);
+	}
+}
+
+function stopCapturing(){
+	capturing = false;
+}
+
+
+
+
+module.exports = collectFrames;
